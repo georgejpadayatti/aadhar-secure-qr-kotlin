@@ -88,6 +88,7 @@ fun gzipDecompress(compressed: ByteArray?): ByteArray? {
     return byteout.toByteArray()
 }
 
+@OptIn(ExperimentalSerializationApi::class)
 fun main() {
 
     // Sample data from Secure QR code specification
@@ -224,7 +225,9 @@ fun main() {
 
     }
 
-    println(Json { prettyPrint = true }.encodeToString(extractedBasicFieldData))
+    val json = Json { prettyPrint = true }
+
+    println(json.encodeToString(extractedBasicFieldData))
 
 
 }
