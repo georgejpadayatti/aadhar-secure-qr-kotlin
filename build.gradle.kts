@@ -15,7 +15,6 @@ repositories {
 
 dependencies {
     testImplementation(kotlin("test"))
-    implementation("com.github.jai-imageio:jai-imageio-core:1.4.0")
     implementation("com.github.jai-imageio:jai-imageio-jpeg2000:1.4.0")
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.2.2")
 }
