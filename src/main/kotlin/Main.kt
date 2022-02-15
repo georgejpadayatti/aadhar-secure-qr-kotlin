@@ -1,4 +1,6 @@
 import com.github.jaiimageio.jpeg2000.impl.J2KImageReaderSpi
+import kotlinx.serialization.*
+import kotlinx.serialization.json.*
 import java.awt.image.BufferedImage
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
@@ -9,9 +11,6 @@ import java.util.zip.GZIPInputStream
 import javax.imageio.ImageIO
 import javax.imageio.ImageReader
 import javax.imageio.spi.IIORegistry
-import kotlin.collections.HashMap
-import kotlinx.serialization.*
-import kotlinx.serialization.json.*
 
 /**
  * Reads JPEG2000 image using the appropriate image reader and returns the buffered image
@@ -88,8 +87,13 @@ fun gzipDecompress(compressed: ByteArray?): ByteArray? {
     return byteout.toByteArray()
 }
 
-@OptIn(ExperimentalSerializationApi::class)
-fun main() {
+fun aadharQrCodeScenario() {
+    /**
+     * aadharQrCodeScenario()
+     *
+     * Decoding aadhar QR code embedded data.
+     *
+     */
 
     // Sample data from Secure QR code specification
     val sampleData = """6979414848205548481619299442879901900893978332594614407044767717485
@@ -163,6 +167,7 @@ fun main() {
 
     // String to BigInteger
     val base10Integer = sampleData.replace("\n", "").toBigInteger()
+    println(base10Integer)
 
     // BigInteger to ByteArray
     val base10Bytes = base10Integer.toByteArray()
@@ -227,7 +232,76 @@ fun main() {
 
     val json = Json { prettyPrint = true }
 
-    println(json.encodeToString(extractedBasicFieldData))
+    println("[INFO] Aadhar QR code embedded data: ${json.encodeToString(extractedBasicFieldData)}")
+}
+
+
+/**
+ * reverseBytes()
+ *
+ * Reverses a bytearray (Little endian to Big endian)
+ *
+ */
+private fun reverseBytes(b: ByteArray): ByteArray {
+    var tmp: Byte
+    for (i in 0 until b.size / 2) {
+        tmp = b[i]
+        b[i] = b[b.size - i - 1]
+        b[b.size - i - 1] = tmp
+    }
+    return b
+}
+
+/**
+ * toHex()
+ *
+ * Extends ByteArray to return hex representation as a string.
+ *
+ */
+fun ByteArray.toHex(): String = joinToString(separator = "") { eachByte -> " %02x ".format(eachByte) }
+
+private fun packRaw_u64b(`val`: Long): ByteArray {
+    /**
+     * packRaw_u64b()
+     *
+     * Kotlin implementation of struct (packing format)
+     *
+     * Accepts long
+     *
+     * Returns unsigned 8 byte big endian string
+     *
+     */
+
+    var `val` = `val`
+    var bx = ByteArray(8)
+    `val` = `val` and -0x1
+    if (`val` >= 0) {
+        bx[0] = (`val` and 0xff).toByte()
+        bx[1] = (`val` shr 8 and 0xff).toByte()
+        bx[2] = (`val` shr 16 and 0xff).toByte()
+        bx[3] = (`val` shr 24 and 0xff).toByte()
+        bx[4] = (`val` shr 32 and 0xff).toByte()
+        bx[5] = (`val` shr 40 and 0xff).toByte()
+        bx[6] = (`val` shr 48 and 0xff).toByte()
+        bx[7] = (`val` shr 56 and 0xff).toByte()
+    }
+
+    bx = reverseBytes(bx)
+
+    return bx
+}
+@OptIn(ExperimentalSerializationApi::class)
+fun main() {
+
+//    aadharQrCodeScenario()
+
+    val epoch = (System.currentTimeMillis() / 1000).toLong()
+
+    println("[INFO] Epoch time: $epoch")
+
+    println("[INFO] Hex representation (of each byte): ${packRaw_u64b(epoch).toHex()}")
+
+    println("[INFO] Base64 encoded packed data: ${Base64.getEncoder().encodeToString(packRaw_u64b(epoch))}")
 
 
 }
