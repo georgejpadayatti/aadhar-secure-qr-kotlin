@@ -19,6 +19,7 @@ dependencies {
     implementation("com.github.jai-imageio:jai-imageio-jpeg2000:1.4.0")
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.2.2")
     implementation("org.hyperledger:indy:1.15.0")
+    implementation("com.google.code.gson:gson:2.9.0")
 }
 
 tasks.test {
