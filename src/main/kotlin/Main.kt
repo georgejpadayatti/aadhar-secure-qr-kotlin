@@ -11,6 +11,8 @@ import java.util.zip.GZIPInputStream
 import javax.imageio.ImageIO
 import javax.imageio.ImageReader
 import javax.imageio.spi.IIORegistry
+import com.google.gson.Gson
+import com.google.gson.reflect.TypeToken
 
 /**
  * Reads JPEG2000 image using the appropriate image reader and returns the buffered image
@@ -290,19 +292,31 @@ private fun packRaw_u64b(`val`: Long): ByteArray {
 
     return bx
 }
+
+private fun packEpochAndStringPayloadScenario(): String? {
+
+    // Step 1: etime -> epoch time.
+    val epoch = (System.currentTimeMillis() / 1000)
+
+    // Step 2: payload -> DID document string
+    val diddoc = """{"authentication":[{"publicKey":"did:mydata:z6MknXiYfVitywY2nWr69XQsRd9CrzkaYmoT78evyTEC47xb#1","type":"Ed25519SignatureAuthentication2018"}],"@context":"https://w3id.org/did/v1","id":"did:mydata:z6MknXiYfVitywY2nWr69XQsRd9CrzkaYmoT78evyTEC47xb","service":[{"id":"did:mydata:z6MknXiYfVitywY2nWr69XQsRd9CrzkaYmoT78evyTEC47xb;didcomm","priority":0,"recipientKeys":["z6MknXiYfVitywY2nWr69XQsRd9CrzkaYmoT78evyTEC47xb"],"serviceEndpoint":"https://mediator.igrant.io/","type":"DIDComm"}],"verification_method":[{"controller":"did:mydata:z6MknXiYfVitywY2nWr69XQsRd9CrzkaYmoT78evyTEC47xb","id":"did:mydata:z6MknXiYfVitywY2nWr69XQsRd9CrzkaYmoT78evyTEC47xb#1","publicKeyBase58":"z6MknXiYfVitywY2nWr69XQsRd9CrzkaYmoT78evyTEC47xb","type":"Ed25519VerificationKey2018"}]}"""
+
+    // Step 3: ASCII encode payload
+    val ascii_diddoc = String(diddoc.toByteArray(), charset("ASCII"))
+
+    // Step 4: Combine etime + payload
+    val combined_value = packRaw_u64b(epoch) + ascii_diddoc.toByteArray()
+
+    // Step 5: Base64 encode combined payload.
+    val combined_value_b64 = Base64.getUrlEncoder().withoutPadding().encodeToString(combined_value)
+
+    return combined_value_b64
+}
+
 @OptIn(ExperimentalSerializationApi::class)
 fun main() {
 
 //    aadharQrCodeScenario()
-
-    val epoch = (System.currentTimeMillis() / 1000).toLong()
-
-    println("[INFO] Epoch time: $epoch")
-
-    println("[INFO] Hex representation (of each byte): ${packRaw_u64b(epoch).toHex()}")
-
-    println("[INFO] Base64 encoded packed data: ${Base64.getEncoder().encodeToString(packRaw_u64b(epoch))}")
-
-
+    println("[INFO Combined payload (etime + payload): ${packEpochAndStringPayloadScenario()}")
 }
 
